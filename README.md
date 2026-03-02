@@ -20,6 +20,12 @@ npm run dev
 
 ブラウザで `http://localhost:3000` を開くと確認できます。
 
+## CI/CD
+
+- Pull Request では `.github/workflows/ci.yml` が走り、`npm ci` と `npm run build` を検証します。
+- `main` への push では `.github/workflows/deploy-pages.yml` が走り、GitHub Pages 向けに静的書き出ししてデプロイします。
+- GitHub 側の `Settings > Pages` は `Build and deployment` を `GitHub Actions` にしてください。
+
 ## Next
 
 - 問題数を増やし、分野別のダンジョンに分ける
