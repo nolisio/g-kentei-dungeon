@@ -7,12 +7,28 @@ import {
   EXP_PER_RANK,
   MAX_HP,
   QUESTIONS,
+  type Question,
 } from "../data/questions";
 
 const QUESTION_COUNT = QUESTIONS.length;
 const INTRO_LOG = "準備完了。最初の扉の前で待機しています。";
 
-function createInitialGame() {
+type GameState = {
+  started: boolean;
+  finished: boolean;
+  hp: number;
+  exp: number;
+  combo: number;
+  cleared: number;
+  currentIndex: number;
+  scanUsed: boolean;
+  locked: boolean;
+  selectedChoice: number | null;
+  logs: string[];
+  resultMessage: string;
+};
+
+function createInitialGame(): GameState {
   return {
     started: false,
     finished: false,
@@ -29,11 +45,11 @@ function createInitialGame() {
   };
 }
 
-function addLog(logs, message) {
+function addLog(logs: string[], message: string): string[] {
   return [message, ...logs].slice(0, 12);
 }
 
-function resolveRankTitle(exp, started, finished) {
+function resolveRankTitle(exp: number, started: boolean, finished: boolean): string {
   if (!started && !finished) {
     return "訓練生";
   }
@@ -55,7 +71,7 @@ function resolveRankTitle(exp, started, finished) {
 
 export function DungeonQuiz() {
   const [game, setGame] = useState(createInitialGame);
-  const timerRef = useRef(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -65,11 +81,13 @@ export function DungeonQuiz() {
     };
   }, []);
 
-  const currentQuestion =
+  const currentQuestion: Question | null =
     game.started && !game.finished ? QUESTIONS[game.currentIndex] : null;
   const hpPercent = Math.max(0, (game.hp / MAX_HP) * 100);
   const expPercent = ((game.exp % EXP_PER_RANK) / EXP_PER_RANK) * 100;
-  const floorValue = game.started ? Math.min(game.currentIndex + 1, QUESTION_COUNT) : 0;
+  const floorValue = game.started
+    ? Math.min(game.currentIndex + 1, QUESTION_COUNT)
+    : 0;
   const rankTitle = resolveRankTitle(game.exp, game.started, game.finished);
   const hintText = currentQuestion
     ? game.scanUsed
@@ -77,7 +95,7 @@ export function DungeonQuiz() {
       : "まだスキャンしていません。必要なときだけ使ってください。"
     : "ダンジョン開始後、各問題で1回だけ敵の弱点を調べられます。";
 
-  function queueTransition(callback) {
+  function queueTransition(callback: () => void) {
     if (timerRef.current) {
       window.clearTimeout(timerRef.current);
     }
@@ -105,7 +123,7 @@ export function DungeonQuiz() {
 
   function advanceToNextFloor() {
     startTransition(() => {
-      setGame((current) => ({
+      setGame((current: GameState) => ({
         ...current,
         currentIndex: current.currentIndex + 1,
         scanUsed: false,
@@ -115,9 +133,9 @@ export function DungeonQuiz() {
     });
   }
 
-  function finishGame(cleared) {
+  function finishGame(cleared: boolean) {
     startTransition(() => {
-      setGame((current) => {
+      setGame((current: GameState) => {
         if (cleared) {
           const rank = current.hp >= 80 ? "S" : current.hp >= 60 ? "A" : "B";
 
@@ -149,7 +167,7 @@ export function DungeonQuiz() {
       return;
     }
 
-    setGame((current) => ({
+    setGame((current: GameState) => ({
       ...current,
       scanUsed: true,
       logs: addLog(
@@ -159,14 +177,14 @@ export function DungeonQuiz() {
     }));
   }
 
-  function handleChoice(choiceIndex) {
+  function handleChoice(choiceIndex: number) {
     if (!currentQuestion || game.locked || game.finished) {
       return;
     }
 
-    let nextStep = null;
+    let nextStep: (() => void) | null = null;
 
-    setGame((current) => {
+    setGame((current: GameState) => {
       if (current.locked || current.finished) {
         return current;
       }
@@ -344,7 +362,8 @@ export function DungeonQuiz() {
               ? currentQuestion.choices.map((choice, index) => {
                   const isCorrect = index === currentQuestion.answer;
                   const isWrong =
-                    game.selectedChoice === index && game.selectedChoice !== currentQuestion.answer;
+                    game.selectedChoice === index &&
+                    game.selectedChoice !== currentQuestion.answer;
 
                   let className = "choice-button";
 
@@ -379,7 +398,7 @@ export function DungeonQuiz() {
           </div>
 
           <div className="log-list" aria-live="polite">
-            {game.logs.map((entry, index) => (
+            {game.logs.map((entry: string, index: number) => (
               <p className="log-entry" key={`${entry}-${index}`}>
                 {entry}
               </p>
