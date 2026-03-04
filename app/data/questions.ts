@@ -3,7 +3,18 @@ export const DAMAGE_PER_MISTAKE = 20;
 export const EXP_PER_CORRECT = 20;
 export const EXP_PER_RANK = 100;
 
-export const QUESTIONS = [
+export type Question = {
+  enemy: string;
+  badge: string;
+  title: string;
+  prompt: string;
+  hint: string;
+  choices: string[];
+  answer: number;
+  explanation: string;
+};
+
+export const QUESTIONS: Question[] = [
   {
     enemy: "確率スライム",
     badge: "S",
